@@ -54,3 +54,4 @@ dkms.conf
 # binaries
 linked_list
 stack
+queue
