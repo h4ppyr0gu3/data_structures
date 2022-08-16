@@ -3,116 +3,208 @@
 #include <string.h>
 
 typedef struct {
-  struct element* next;
+  struct element* left;
+  struct element* right;
   char* data;
 } element;
 
 element* create_element(char* data) {
   element* new = malloc(sizeof(element));
   new -> data = data;
-  new -> next = NULL;
+  new -> left = NULL;
+  new -> right = NULL;
   return new;
 }
 
-void insert_last(element** head, char* data) {
+void update_right(element* head, int index, char* data);
+void update_left(element* head, int index, char* data);
+void print_left(element* head);
+void print_left(element* head);
+
+void insert_left(element** head, char* data) {
   if (*head == NULL) {
     element* new = create_element(data);
     *head = new;
   } else {
     element* current = *head;
-    while(current -> next != NULL) {
-      current = current -> next;
+    while(current -> left != NULL) {
+      current = current -> left;
     }
     element* new = create_element(data);
-    current -> next = new;
+    current -> left = new;
+    new -> right = current;
+  }
+}
+
+void insert_right(element** head, char* data) {
+  if (*head == NULL) {
+    element* new = create_element(data);
+    *head = new;
+  } else {
+    element* current = *head;
+    while(current -> right != NULL) {
+      current = current -> right;
+    }
+    element* new = create_element(data);
+    current -> right = new;
+    new -> left = current;
   }
 }
 
 void print_list(element* head) {
   if (head == NULL) printf("empty list\n");
   else {
-    element* current = head;
-    while( current != NULL) {
-      printf("current data: %s\n", current -> data);
-      current = current -> next;
-    }
+    printf("Prints Head twice\n");
+    printf("Printing Left:\n");
+    print_left(head);
+    printf("Printing Right:\n");
+    print_right(head);
   }
 }
 
-void update(element* head, int index, char* data) {
-  if (head == NULL) return;
+void print_left(element* head) {
+  element* current = head;
+  while( current != NULL) {
+    printf("current data: %s\n", current -> data);
+    current = current -> left;
+  }
+}
 
+void print_right(element* head) {
+  element* current = head;
+  while( current != NULL) {
+    printf("current data: %s\n", current -> data);
+    current = current -> right;
+  }
+}
+
+void update(element* head, int index, int direction, char* data) {
+  if (head == NULL) return;
+  if(direction > 0) update_right(head, index, data);
+  else if (direction < 0) update_left(head, index, data);
+  else printf("Incorrect direction");
+}
+
+void update_left(element* head, int index, char* data) {
   element* current = head;
 
-  for(int i = 1; i < index; i++)
-    current = current -> next;
-
+  for(int i = 1; i < index; i++) {
+    if (current -> left == NULL) {
+      printf("Index is out of range\n");
+      return;
+    }
+    current = current -> left;
+  }
   current -> data = data;
 }
 
-void remove_element(element** head, int index) {
-  element* current = *head;
-  if (head == NULL) return;
-  if (index == 1) {
-    *head = current -> next;
-    return;
-  }
-
-  element* prev = head;
+void update_right(element* head, int index, char* data) {
+  element* current = head;
 
   for(int i = 1; i < index; i++) {
-    if (current == NULL) return;
-    prev = current;
-    current = current -> next;
+    if (current -> right == NULL) {
+      printf("Index is out of range\n");
+      return;
+    }
+    current = current -> right;
   }
-  prev -> next = current -> next;
+  current -> data = data;
+}
+
+void handle_position_zero(element** head) {
+  element* current = *head;
+  element* left = current -> left;
+  element* right = current -> right;
+  if (left == NULL && right == NULL) *head = NULL;
+  if (left == NULL && right != NULL) {
+    right -> left = NULL;
+    *head = right;
+  } 
+  if ( left != NULL && right == NULL) {
+    left -> right == NULL;
+    *head = left;
+  }
+  if (left != NULL && right != NULL) {
+    left -> right = right;
+    *head = left;
+
+    free(current);
+  }
+  return;
+}
+
+void handle_right(element** head, int index) {
+  element* current = *head;
+  element* right = head;
+
+  for(int i = 0; i < index; i++) {
+    if (current == NULL) return;
+    right = current;
+    current = current -> right;
+  }
+
+  element* left = current -> left;
+  left -> right = current -> right;
   free(current);
 }
 
-void retrieve_element(element* head, int index) {
-  if (index < 1) return;
-  if (index == 1 && head != NULL) printf("indexed data: %s\n", head -> data);
-  element* current = head;
-  for (int i = 1; i < index ; i++) {
-    if (current == NULL) {
-      printf("Element doesn't exist");
-      return;
-    }
-    current = current -> next;
+void handle_left(element** head, int index) {
+  element* current = *head;
+  element* left = *head;
+
+  for(int i = 0; i > index; i--) {
+    if (current == NULL) return;
+    left = current;
+    current = current -> left;
   }
-  if (current == NULL) {
-    printf("Element doesn't exist");
+
+  element* right = current -> right;
+  right -> left = current -> left;
+  free(current);
+}
+
+void remove_element(element** head, int index) {
+  if (head == NULL) return;
+
+  if (index == 0) {
+    handle_position_zero(head);
     return;
   }
-  printf("indexed data: %s\n", current -> data);
+  if ( index >= 1) handle_right(head, index);
+  else if (index <= -1 ) handle_left(head, index);
+  else printf("Invalid value");
 }
 
 int main() {
   element* head = NULL;
   printf("\nPrinting empty list:\n\n");
   print_list(head);
-  insert_last(&head, "datta");
-  insert_last(&head, "more datta");
-  insert_last(&head, "some more datta");
-  insert_last(&head, "even more datta");
-  printf("\nPrinting list after adding data:\n\n");
+  insert_left(&head, "creating head");
+  insert_left(&head, "second left");
+  insert_left(&head, "third left");
+  insert_left(&head, "fourth left");
+  insert_left(&head, "fifth left");
+  insert_left(&head, "sixth left");
+  insert_right(&head, "first right");
+  insert_right(&head, "second right");
+  insert_right(&head, "third right");
+  printf("\nPrinting list with one on each side\n\n");
   print_list(head);
-  update(head, 3, "updated");
-  printf("\nPrinting list after updating data:\n\n");
+  update(head, 2, -3, "updated left");
+  printf("\nPrinting after updating\n\n");
   print_list(head);
-  remove_element(&head, 1);
-  printf("\nPrinting list after removing head:\n\n");
-  print_list(head);
+  printf("\nPrinting before removeing at 2, -2\n\n");
   remove_element(&head, 2);
-  printf("\nPrinting list after removing second element:\n\n");
+  printf("\nPrinting after removeing at 2\n\n");
   print_list(head);
-  printf("\nPrinting list after adding more data:\n\n");
-  insert_last(&head, "more datta at the end");
-  insert_last(&head, "adding more again");
+  printf("\nPrinting after removeing at -2\n\n");
+  remove_element(&head, -2);
   print_list(head);
-  printf("\nGetting element by index:\n\n");
-  retrieve_element(head, 3);
-  printf("\nGetting element out of range:\n\n");
-  retrieve_element(head, 6);
+  printf("\nPrinting after removeing at 0\n\n");
+  remove_element(&head, 0);
+  print_list(head);
+  printf("\nPrinting after removeing at -3\n\n");
+  remove_element(&head, -3);
+  print_list(head);
 }
 

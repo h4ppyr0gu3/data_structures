@@ -62,7 +62,6 @@ void top(element* head) {
 
 int main() {
   element* head = NULL;
-  /** element* tail = NULL; */
   printf("\nPrinting empty list:\n\n");
   print_list(head);
   push(&head, "datta");
